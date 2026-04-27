@@ -23,7 +23,6 @@ export default async function handler(req, res) {
 
     if (!nama) nama = 'User'
 
-    // fallback PP kalau kosong
     if (!avatar) {
         avatar = 'https://i.pinimg.com/564x/8a/eb/d8/8aebd875fbddd22bf3971c3a7159bdc7.jpg'
     }
@@ -50,7 +49,7 @@ export default async function handler(req, res) {
         // title
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        ctx.font = 'bold 32px Sans'
+        ctx.font = 'bold 32px Arial'
         ctx.fillStyle = '#ff4d6d'
         ctx.fillText('CEK GAMON 💔', canvas.width / 2, 50)
 
@@ -77,14 +76,13 @@ export default async function handler(req, res) {
         ctx.lineWidth = 5
         ctx.stroke()
 
-        // ===== OVERLAY HATI PNG =====
+        // ===== OVERLAY HEART (optional) =====
         try {
-            const heart = await loadImage('https://cdn-icons-png.flaticon.com/512/833/833472.png')
+            const heart = await loadImage('https://cdn-icons-png.flaticon.com/512/742/742751.png')
 
             ctx.save()
-            ctx.globalAlpha = 0.4
-
-            const size = radius * 1.6
+            ctx.globalAlpha = 0.5
+            const size = radius * 1.4
 
             ctx.drawImage(
                 heart,
@@ -97,9 +95,9 @@ export default async function handler(req, res) {
             ctx.restore()
         } catch {}
 
-        // ===== NAMA =====
+        // ===== NAMA (PASTI KELIATAN) =====
+        ctx.font = 'bold 28px Arial'
         ctx.fillStyle = '#ffffff'
-        ctx.font = 'bold 26px Sans'
         ctx.fillText(nama, centerX, 330)
 
         // ===== BOX =====
@@ -109,13 +107,13 @@ export default async function handler(req, res) {
         const boxY = 370
 
         ctx.fillStyle = '#ffffff'
-        roundRect(ctx, boxX, boxY, boxW, boxH, 25)
+        roundRect(ctx, boxX, boxY, boxW, boxH, 20)
         ctx.fill()
 
-        // ===== PERSEN =====
-        ctx.fillStyle = '#ff4d6d'
-        ctx.font = 'bold 42px Sans'
-        ctx.fillText(`${num}%`, centerX, boxY + 45)
+        // ===== PERSEN (PASTI KELIATAN) =====
+        ctx.font = 'bold 45px Arial'
+        ctx.fillStyle = '#000000'
+        ctx.fillText(`${num}%`, centerX, boxY + 40)
 
         const buffer = canvas.toBuffer('image/png')
 
