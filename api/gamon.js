@@ -21,24 +21,32 @@ export default async function handler(req, res) {
     let avatar = searchParams.get('avatar')
     let num = searchParams.get('num')
 
-    if (!nama) nama = 'User'
-
-    if (!avatar) {
-        avatar = 'https://i.pinimg.com/564x/8a/eb/d8/8aebd875fbddd22bf3971c3a7159bdc7.jpg'
+    // ===== VALIDASI KETAT =====
+    if (!nama || !avatar || !num) {
+        return res.status(400).json({
+            status: false,
+            error: 'Parameters "nama", "avatar", and "num" are required',
+            code: 400
+        })
     }
 
     num = parseInt(num)
-    if (isNaN(num)) num = Math.floor(Math.random() * 100) + 1
+    if (isNaN(num)) {
+        return res.status(400).json({
+            status: false,
+            error: '"num" must be a number',
+            code: 400
+        })
+    }
 
     try {
         const canvas = createCanvas(700, 520)
         const ctx = canvas.getContext('2d')
 
-        // background
+        // ===== BACKGROUND =====
         ctx.fillStyle = '#0f172a'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-        // diagonal
         ctx.fillStyle = '#1e293b'
         ctx.beginPath()
         ctx.moveTo(0, 0)
@@ -46,10 +54,11 @@ export default async function handler(req, res) {
         ctx.lineTo(0, 350)
         ctx.fill()
 
-        // title
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        ctx.font = 'bold 32px Arial'
+
+        // ===== TITLE =====
+        ctx.font = 'bold 32px'
         ctx.fillStyle = '#ff4d6d'
         ctx.fillText('CEK GAMON 💔', canvas.width / 2, 50)
 
@@ -67,36 +76,23 @@ export default async function handler(req, res) {
             ctx.clip()
             ctx.drawImage(img, centerX - radius, centerY - radius, radius * 2, radius * 2)
             ctx.restore()
-        } catch {}
+        } catch {
+            return res.status(400).json({
+                status: false,
+                error: 'Invalid avatar URL',
+                code: 400
+            })
+        }
 
-        // border avatar
+        // border
         ctx.beginPath()
         ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
         ctx.strokeStyle = '#ff4d6d'
         ctx.lineWidth = 5
         ctx.stroke()
 
-        // ===== OVERLAY HEART (optional) =====
-        try {
-            const heart = await loadImage('https://cdn-icons-png.flaticon.com/512/742/742751.png')
-
-            ctx.save()
-            ctx.globalAlpha = 0.5
-            const size = radius * 1.4
-
-            ctx.drawImage(
-                heart,
-                centerX - size / 2,
-                centerY - size / 2,
-                size,
-                size
-            )
-
-            ctx.restore()
-        } catch {}
-
-        // ===== NAMA (PASTI KELIATAN) =====
-        ctx.font = 'bold 28px Arial'
+        // ===== NAMA =====
+        ctx.font = 'bold 28px'
         ctx.fillStyle = '#ffffff'
         ctx.fillText(nama, centerX, 330)
 
@@ -110,8 +106,8 @@ export default async function handler(req, res) {
         roundRect(ctx, boxX, boxY, boxW, boxH, 20)
         ctx.fill()
 
-        // ===== PERSEN (PASTI KELIATAN) =====
-        ctx.font = 'bold 45px Arial'
+        // ===== PERSEN =====
+        ctx.font = 'bold 45px'
         ctx.fillStyle = '#000000'
         ctx.fillText(`${num}%`, centerX, boxY + 40)
 
@@ -122,6 +118,10 @@ export default async function handler(req, res) {
 
     } catch (e) {
         console.error(e)
-        res.status(500).send('error generate image')
+        res.status(500).json({
+            status: false,
+            error: 'Failed to generate image',
+            code: 500
+        })
     }
 }
