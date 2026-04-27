@@ -15,13 +15,23 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 export default async function handler(req, res) {
-    let { nama, avatar, num } = req.query
+    // 🔥 FIX: ambil query dari URL (bukan req.query)
+    const { searchParams } = new URL(req.url, `http://${req.headers.host}`)
 
+    let nama = searchParams.get('nama')
+    let avatar = searchParams.get('avatar')
+    let num = searchParams.get('num')
+
+    // fallback
     if (!nama) nama = 'User'
-    if (!avatar) avatar = 'https://i.pravatar.cc/300'
-    
+
+    // 👉 kalau pp ga ada → pakai default kosong (bukan random)
+    if (!avatar) {
+        avatar = 'https://i.pinimg.com/564x/8a/eb/d8/8aebd875fbddd22bf3971c3a7159bdc7.jpg'
+    }
+
     num = parseInt(num)
-    if (isNaN(num)) num = 0
+    if (isNaN(num)) num = Math.floor(Math.random() * 100) + 1
 
     try {
         const canvas = createCanvas(700, 520)
@@ -59,7 +69,9 @@ export default async function handler(req, res) {
             ctx.clip()
             ctx.drawImage(img, centerX - radius, centerY - radius, radius * 2, radius * 2)
             ctx.restore()
-        } catch {}
+        } catch {
+            // kalau gagal load gambar → skip (biar ga error)
+        }
 
         // border avatar
         ctx.beginPath()
@@ -87,7 +99,7 @@ export default async function handler(req, res) {
         roundRect(ctx, boxX, boxY, boxW, boxH, 25)
         ctx.fill()
 
-        // angka persen (sinkron dari bot)
+        // persen (sinkron dari bot)
         ctx.fillStyle = '#ff4d6d'
         ctx.font = 'bold 40px Sans'
         ctx.fillText(`${num}%`, centerX, boxY + 52)
@@ -99,6 +111,6 @@ export default async function handler(req, res) {
 
     } catch (e) {
         console.error(e)
-        res.status(500).send('error')
+        res.status(500).send('error generate image')
     }
 }
