@@ -1,6 +1,10 @@
 {
   "name": "gamon-api",
   "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "@napi-rs/canvas": "0.1.88"
   }
