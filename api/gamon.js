@@ -14,6 +14,20 @@ function roundRect(ctx, x, y, w, h, r) {
     ctx.closePath()
 }
 
+// 🔥 TEXT VIA SVG (ANTI GAGAL)
+async function loadTextImage(text, size = 40, color = '#fff') {
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="700" height="100">
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+        font-size="${size}" fill="${color}" font-family="Arial">
+        ${text}
+        </text>
+    </svg>
+    `
+    const base64 = Buffer.from(svg).toString('base64')
+    return await loadImage(`data:image/svg+xml;base64,${base64}`)
+}
+
 export default async function handler(req, res) {
     const { searchParams } = new URL(req.url, `http://${req.headers.host}`)
 
@@ -21,7 +35,7 @@ export default async function handler(req, res) {
     let avatar = searchParams.get('avatar')
     let num = searchParams.get('num')
 
-    // ===== VALIDASI KETAT =====
+    // STRICT MODE
     if (!nama || !avatar || !num) {
         return res.status(400).json({
             status: false,
@@ -54,17 +68,13 @@ export default async function handler(req, res) {
         ctx.lineTo(0, 350)
         ctx.fill()
 
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-
-        // ===== TITLE =====
-        ctx.font = 'bold 32px'
-        ctx.fillStyle = '#ff4d6d'
-        ctx.fillText('CEK GAMON 💔', canvas.width / 2, 50)
-
         const centerX = canvas.width / 2
         const centerY = 190
         const radius = 90
+
+        // ===== TITLE =====
+        const titleImg = await loadTextImage('CEK GAMON 💔', 32, '#ff4d6d')
+        ctx.drawImage(titleImg, 0, 10)
 
         // ===== AVATAR =====
         try {
@@ -91,10 +101,18 @@ export default async function handler(req, res) {
         ctx.lineWidth = 5
         ctx.stroke()
 
-        // ===== NAMA =====
-        ctx.font = 'bold 28px'
-        ctx.fillStyle = '#ffffff'
-        ctx.fillText(nama, centerX, 330)
+        // ===== HEART OVERLAY =====
+        try {
+            const heart = await loadImage('https://cdn-icons-png.flaticon.com/512/742/742751.png')
+            ctx.globalAlpha = 0.5
+            const size = radius * 1.4
+            ctx.drawImage(heart, centerX - size / 2, centerY - size / 2, size, size)
+            ctx.globalAlpha = 1
+        } catch {}
+
+        // ===== NAMA (SVG) =====
+        const nameImg = await loadTextImage(nama, 28, '#ffffff')
+        ctx.drawImage(nameImg, 0, 280)
 
         // ===== BOX =====
         const boxW = 220
@@ -106,10 +124,9 @@ export default async function handler(req, res) {
         roundRect(ctx, boxX, boxY, boxW, boxH, 20)
         ctx.fill()
 
-        // ===== PERSEN =====
-        ctx.font = 'bold 45px'
-        ctx.fillStyle = '#000000'
-        ctx.fillText(`${num}%`, centerX, boxY + 40)
+        // ===== PERSEN (SVG) =====
+        const percentImg = await loadTextImage(`${num}%`, 45, '#000000')
+        ctx.drawImage(percentImg, 0, boxY + 10)
 
         const buffer = canvas.toBuffer('image/png')
 
