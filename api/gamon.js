@@ -15,17 +15,15 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 export default async function handler(req, res) {
-    // 🔥 FIX: ambil query dari URL (bukan req.query)
     const { searchParams } = new URL(req.url, `http://${req.headers.host}`)
 
     let nama = searchParams.get('nama')
     let avatar = searchParams.get('avatar')
     let num = searchParams.get('num')
 
-    // fallback
     if (!nama) nama = 'User'
 
-    // 👉 kalau pp ga ada → pakai default kosong (bukan random)
+    // fallback PP kalau kosong
     if (!avatar) {
         avatar = 'https://i.pinimg.com/564x/8a/eb/d8/8aebd875fbddd22bf3971c3a7159bdc7.jpg'
     }
@@ -50,16 +48,17 @@ export default async function handler(req, res) {
         ctx.fill()
 
         // title
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
         ctx.font = 'bold 32px Sans'
         ctx.fillStyle = '#ff4d6d'
-        ctx.textAlign = 'center'
-        ctx.fillText('CEK GAMON 💔', canvas.width / 2, 60)
+        ctx.fillText('CEK GAMON 💔', canvas.width / 2, 50)
 
-        // avatar bulat
         const centerX = canvas.width / 2
-        const centerY = 200
+        const centerY = 190
         const radius = 90
 
+        // ===== AVATAR =====
         try {
             const img = await loadImage(avatar)
 
@@ -69,9 +68,7 @@ export default async function handler(req, res) {
             ctx.clip()
             ctx.drawImage(img, centerX - radius, centerY - radius, radius * 2, radius * 2)
             ctx.restore()
-        } catch {
-            // kalau gagal load gambar → skip (biar ga error)
-        }
+        } catch {}
 
         // border avatar
         ctx.beginPath()
@@ -80,29 +77,45 @@ export default async function handler(req, res) {
         ctx.lineWidth = 5
         ctx.stroke()
 
-        // icon hati retak
-        ctx.font = '60px Sans'
-        ctx.fillText('💔', centerX, 320)
+        // ===== OVERLAY HATI PNG =====
+        try {
+            const heart = await loadImage('https://cdn-icons-png.flaticon.com/512/833/833472.png')
 
-        // nama
-        ctx.fillStyle = '#fff'
-        ctx.font = '22px Sans'
-        ctx.fillText(nama, centerX, 360)
+            ctx.save()
+            ctx.globalAlpha = 0.4
 
-        // box persen
+            const size = radius * 1.6
+
+            ctx.drawImage(
+                heart,
+                centerX - size / 2,
+                centerY - size / 2,
+                size,
+                size
+            )
+
+            ctx.restore()
+        } catch {}
+
+        // ===== NAMA =====
+        ctx.fillStyle = '#ffffff'
+        ctx.font = 'bold 26px Sans'
+        ctx.fillText(nama, centerX, 330)
+
+        // ===== BOX =====
         const boxW = 220
         const boxH = 80
         const boxX = centerX - boxW / 2
-        const boxY = 390
+        const boxY = 370
 
-        ctx.fillStyle = '#fff'
+        ctx.fillStyle = '#ffffff'
         roundRect(ctx, boxX, boxY, boxW, boxH, 25)
         ctx.fill()
 
-        // persen (sinkron dari bot)
+        // ===== PERSEN =====
         ctx.fillStyle = '#ff4d6d'
-        ctx.font = 'bold 40px Sans'
-        ctx.fillText(`${num}%`, centerX, boxY + 52)
+        ctx.font = 'bold 42px Sans'
+        ctx.fillText(`${num}%`, centerX, boxY + 45)
 
         const buffer = canvas.toBuffer('image/png')
 
