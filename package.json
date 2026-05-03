@@ -1,0 +1,18 @@
+{
+  "name": "gamon-api",
+  "version": "1.0.0",
+  "description": "Canvas API for gamon & stress",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.88",
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
